@@ -1,7 +1,7 @@
 ﻿using Domain.Bucket;
 using Domain.Page;
 
-const string PATH = "/home/HashIndex/Application/words.txt";
+const string PATH = "/root/HashIndex/Application/words.txt";
 
 var pageManager = new PageManager();
 var bucketManager = new BucketManager(10);

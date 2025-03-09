@@ -34,6 +34,7 @@ public class BucketManager(int capacity)
 	{
 		BucketModel? bucket = buckets.Find(bucket => bucket.Key == key);
 
+		// Se o bucket já existe, significa que o houve um colisão de chave, a partir disso o bucket vai armazenar mais de uma tupla
 		if (bucket is not null)
 		{
 			bucket.Tuples.Add(new Tuple(word, pageAddress));
