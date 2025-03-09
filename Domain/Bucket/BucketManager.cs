@@ -30,7 +30,7 @@ namespace Domain.Bucket
 		/// <param name="key">A chave do bucket onde a tupla será inserida.</param>
 		/// <param name="word">A palavra a ser inserida na tupla.</param>
 		/// <param name="pageAddress">O endereço da página associado à palavra.</param>
-		public void Insert(string key, string word, int pageAddress)
+		public void CreateBucket(string key, string word, int pageAddress)
 		{
 			BucketModel? bucket = buckets.Find(bucket => bucket.Key == key);
 
@@ -43,13 +43,13 @@ namespace Domain.Bucket
 				if (buckets.Count < capacity)
 				{
 					BucketModel newBucket = new(key);
-					newBucket.Tuples.Add(new(word, pageAddress));
+					newBucket.Tuples.Add(new Tuple(word, pageAddress));
 					buckets.Add(newBucket);
 				}
 				else
 				{
 					overflowBucketManager ??= new BucketManager(capacity);
-					overflowBucketManager.Insert(key, word, pageAddress);
+					overflowBucketManager.CreateBucket(key, word, pageAddress);
 				}
 			}
 		}
