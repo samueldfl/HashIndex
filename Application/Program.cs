@@ -1,10 +1,11 @@
-﻿using Domain.Bucket;
+﻿using System.Diagnostics;
 using Domain.Page;
 
 const string PATH = "/root/HashIndex/Application/words.txt";
 
 var pageManager = new PageManager();
-var bucketManager = new BucketManager(10);
+var stopwatch = new Stopwatch();
+
 if (File.Exists(PATH))
 {
 	try
@@ -13,7 +14,6 @@ if (File.Exists(PATH))
 		var words = lines.SelectMany(line => line.Split('\n')).ToArray();
 
 		pageManager.CreatePages(words, 100_000);
-		Console.WriteLine(pageManager.TableScan("wild-looking"));
 	}
 	catch (Exception e)
 	{
