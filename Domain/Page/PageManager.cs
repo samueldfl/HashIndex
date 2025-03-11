@@ -19,7 +19,7 @@ public class PageManager
 		}
 	}
 
-	public IEnumerable<PageModel> GetPages()
+	public IList<PageModel> GetPages()
 	{
 		return pages;
 	}
@@ -32,7 +32,7 @@ public class PageManager
 	public int CalculateBuckets(int FR)
 	{
 		int NR = pages.Sum(pagina => pagina.Words.Length);
-		return Math.Max(NR / FR, 1);
+		return NR / FR + 1;
 	}
 
 	public int TableScan(string target)

@@ -3,6 +3,7 @@ namespace Domain.Page;
 public class PageModel
 {
 	public int Index { get; private set; }
+
 	public string[] Words { get; private set; }
 
 	public PageModel(int index, string[] words, int size)

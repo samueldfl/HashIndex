@@ -1,10 +1,11 @@
+using Domain.Page;
 using Domain.Utils;
 
 namespace Domain.Bucket;
 
-public class BucketDictionary(uint capacity)
+public class BucketDictionary(int tuplesCapacity)
 {
-	private readonly uint _capacity = capacity;
+	private readonly int _tuplesCapacity = tuplesCapacity;
 
 	private BucketDictionary? _overflowBucketDictionary;
 
@@ -12,20 +13,24 @@ public class BucketDictionary(uint capacity)
 
 	public IEnumerable<int> this[string key]
 	{
-		get
-		{
-			var bucket = _bucketStorage[key];
-			return bucket;
-		}
+		get => _bucketStorage[key];
 		set
 		{
-			if (_bucketStorage.ContainsKey(key))
+			if (_bucketStorage.TryGetValue(key, out IEnumerable<int>? existingValues))
 			{
-				_bucketStorage[key] = [.. value];
+				if (existingValues.Count() < _tuplesCapacity)
+				{
+					_bucketStorage[key] = [.. existingValues, .. value];
+				}
+				else
+				{
+					_overflowBucketDictionary ??= new BucketDictionary(_tuplesCapacity);
+					_overflowBucketDictionary[key] = value;
+				}
 			}
 			else
 			{
-				_bucketStorage.Add(key, [.. value]);
+				_bucketStorage.Add(key, value);
 			}
 		}
 	}
@@ -35,23 +40,6 @@ public class BucketDictionary(uint capacity)
 	public ICollection<IEnumerable<int>> Values => _bucketStorage.Values;
 
 	public int Count => _bucketStorage.Count;
-
-	public void Add(string key, IEnumerable<int> values)
-	{
-		if (Count < _capacity)
-		{
-			if (_bucketStorage.TryGetValue(key, out var existingValues))
-			{
-				_bucketStorage[key] = [.. existingValues, .. values];
-				return;
-			}
-
-			_bucketStorage.Add(key, values);
-		}
-
-		_overflowBucketDictionary ??= new BucketDictionary(_capacity);
-		_overflowBucketDictionary.Add(key, values);
-	}
 
 	public IEnumerable<int> GetBucketPages(string target)
 	{
