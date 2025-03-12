@@ -29,12 +29,6 @@ public class PageManager
 		return pages[index];
 	}
 
-	public int CalculateBuckets(int FR)
-	{
-		int NR = pages.Sum(pagina => pagina.Words.Length);
-		return NR / FR + 1;
-	}
-
 	public int TableScan(string target)
 	{
 		foreach (var page in pages)

@@ -9,16 +9,17 @@ public class BucketDictionary(int tuplesCapacity)
 
 	private BucketDictionary? _overflowBucketDictionary;
 
-	private readonly Dictionary<string, IEnumerable<int>> _bucketStorage = [];
+	private readonly Dictionary<string, HashSet<int>> _bucketStorage = [];
 
-	public IEnumerable<int> this[string key]
+	public HashSet<int> this[string key]
 	{
 		get => _bucketStorage[key];
 		set
 		{
-			if (_bucketStorage.TryGetValue(key, out IEnumerable<int>? existingValues))
+			if (_bucketStorage.TryGetValue(key, out HashSet<int>? existingValues))
 			{
-				if (existingValues.Count() < _tuplesCapacity)
+				Statics.IncrementCollision();
+				if (existingValues.Count < _tuplesCapacity)
 				{
 					_bucketStorage[key] = [.. existingValues, .. value];
 				}
@@ -26,10 +27,12 @@ public class BucketDictionary(int tuplesCapacity)
 				{
 					_overflowBucketDictionary ??= new BucketDictionary(_tuplesCapacity);
 					_overflowBucketDictionary[key] = value;
+					Statics.IncrementOverflow();
 				}
 			}
 			else
 			{
+				Statics.IncrementNonCollision();
 				_bucketStorage.Add(key, value);
 			}
 		}
@@ -37,7 +40,7 @@ public class BucketDictionary(int tuplesCapacity)
 
 	public ICollection<string> Keys => _bucketStorage.Keys;
 
-	public ICollection<IEnumerable<int>> Values => _bucketStorage.Values;
+	public ICollection<HashSet<int>> Values => _bucketStorage.Values;
 
 	public int Count => _bucketStorage.Count;
 
@@ -49,7 +52,19 @@ public class BucketDictionary(int tuplesCapacity)
 		return pages;
 	}
 
-	public IEnumerable<int> GetPagesIndexesByKey(string target)
+	public void CreateBuckets(IList<PageModel> pages, int numOfBuckets)
+	{
+		foreach (var page in pages)
+		{
+			foreach (var word in page.Words)
+			{
+				var key = Hash.Compute(word, numOfBuckets);
+				this[key] = [page.Index];
+			}
+		}
+	}
+
+	public HashSet<int> GetPagesIndexesByKey(string target)
 	{
 		string key = Hash.Compute(target, _bucketStorage.Count);
 
@@ -64,5 +79,10 @@ public class BucketDictionary(int tuplesCapacity)
 		}
 
 		return [];
+	}
+
+	public static int CalculateBuckets(int NR, int FR)
+	{
+		return NR / FR + 1;
 	}
 }
