@@ -33,22 +33,29 @@ public class BucketController(PageManager pageManager, BucketDictionary bucketDi
 	[HttpGet(Routes.BUCKETS_SEARCH_BY_TARGET_PAGE)]
 	public IActionResult GetBucketPages([FromRoute] string target)
 	{
-		var pagesIndexes = _bucketDictionary.GetPagesIndexesByKey(target);
-
-		foreach (var index in pagesIndexes)
+		try
 		{
-			var page = _pageManager.GetPageByIndex(index);
+			var pagesIndexes = _bucketDictionary.GetPagesIndexesByKey(target);
 
-			foreach (var word in page.Words)
+			foreach (var index in pagesIndexes)
 			{
-				if (word.Equals(target, StringComparison.Ordinal))
+				var page = _pageManager.GetPageByIndex(index);
+
+				foreach (var word in page.Words)
 				{
-					return Ok(page);
+					if (word.Equals(target, StringComparison.Ordinal))
+					{
+						return Ok(page);
+					}
 				}
 			}
-		}
 
-		return NotFound();
+			return NotFound();
+		}
+		catch (Exception e)
+		{
+			return BadRequest(e.Message);
+		}
 	}
 
 	[HttpPost(Routes.BUCKETS)]
