@@ -4,6 +4,8 @@ public class PageManager
 {
 	private readonly IList<PageModel> pages = [];
 
+	public int Count => pages.Sum(page => page.Words.Length);
+
 	public void CreatePages(string[] words, int pageSize)
 	{
 		int pageNumber = 0;
@@ -29,10 +31,12 @@ public class PageManager
 		return pages[index];
 	}
 
-	public int TableScan(string target)
+	public int TableScan(string target, out int cost)
 	{
+		cost = 0;
 		foreach (var page in pages)
 		{
+			cost++;
 			foreach (var word in page.Words)
 			{
 				if (word.Equals(target, StringComparison.Ordinal))

@@ -3,9 +3,9 @@ using Domain.Utils;
 
 namespace Domain.Bucket;
 
-public class BucketDictionary(int tuplesCapacity)
+public class BucketDictionary
 {
-	private readonly int _tuplesCapacity = tuplesCapacity;
+	public int BucketSize { get; set; } = 0;
 
 	private BucketDictionary? _overflowBucketDictionary;
 
@@ -16,33 +16,31 @@ public class BucketDictionary(int tuplesCapacity)
 		get => _bucketStorage[key];
 		set
 		{
-			if (_bucketStorage.TryGetValue(key, out HashSet<int>? existingValues))
+			if (_bucketStorage.TryGetValue(key, out var existingValues))
 			{
 				Statics.IncrementCollision();
-				if (existingValues.Count < _tuplesCapacity)
+
+				if (existingValues.Count < BucketSize)
 				{
 					_bucketStorage[key] = [.. existingValues, .. value];
 				}
 				else
 				{
-					_overflowBucketDictionary ??= new BucketDictionary(_tuplesCapacity);
+					_overflowBucketDictionary ??= new BucketDictionary();
+					_overflowBucketDictionary.BucketSize = BucketSize;
 					_overflowBucketDictionary[key] = value;
+
 					Statics.IncrementOverflow();
 				}
 			}
 			else
 			{
-				Statics.IncrementNonCollision();
 				_bucketStorage.Add(key, value);
+
+				Statics.IncrementNonCollision();
 			}
 		}
 	}
-
-	public ICollection<string> Keys => _bucketStorage.Keys;
-
-	public ICollection<HashSet<int>> Values => _bucketStorage.Values;
-
-	public int Count => _bucketStorage.Count;
 
 	public IEnumerable<int> GetBucketPages(string target)
 	{
@@ -81,8 +79,33 @@ public class BucketDictionary(int tuplesCapacity)
 		return [];
 	}
 
-	public static int CalculateBuckets(int NR, int FR)
+	public int Scan(IList<PageModel> pages, string target, out int cost)
 	{
-		return NR / FR + 1;
+		cost = 0;
+		var pagesIndexes = GetPagesIndexesByKey(target);
+
+		if (pagesIndexes.Count != 0)
+		{
+			foreach (var index in pagesIndexes)
+			{
+				cost++;
+				var page = pages[index];
+
+				foreach (var word in page.Words)
+				{
+					if (word.Equals(target, StringComparison.Ordinal))
+					{
+						return page.Index;
+					}
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	public int CalculateBuckets(int NR)
+	{
+		return NR / BucketSize + 1;
 	}
 }

@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PageManager>();
-builder.Services.AddSingleton(new BucketDictionary(100));
+builder.Services.AddSingleton<BucketDictionary>();
 
 var app = builder.Build();
 

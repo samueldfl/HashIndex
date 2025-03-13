@@ -12,9 +12,11 @@ public static class Routes
 
 	public const string BUCKETS = @"/buckets";
 
-	public const string BUCKETS_SEARCH_BY_TARGET_PAGE = @"/buckets/{target}/page";
+	public const string BUCKETS_TUPLES = @"/buckets/tuples";
 
-	public const string BUCKETS_CALCULATE = @"/buckets/{FR}/calculate";
+	public const string BUCKETS_CALCULATE = @"/buckets/calculate";
+
+	public const string SEARCH_TARGET_WORD_PAGE = @"/search/{target}/page";
 
 	public const string COLLISION = @"/collision";
 
