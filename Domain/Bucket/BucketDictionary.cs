@@ -5,44 +5,49 @@ namespace Domain.Bucket;
 
 public class BucketDictionary
 {
-	public int BucketSize { get; set; } = 0;
+	public int Size { get; set; } = 0;
 
 	private BucketDictionary? _overflowBucketDictionary;
 
-	private readonly Dictionary<string, HashSet<int>> _bucketStorage = [];
+	private readonly Dictionary<string, Dictionary<string, int>> _bucketStorage = [];
 
-	public HashSet<int> this[string key]
+	public Dictionary<string, int> this[string key]
 	{
 		get => _bucketStorage[key];
 		set
 		{
-			if (_bucketStorage.TryGetValue(key, out var existingValues))
+			if (_bucketStorage.TryGetValue(key, out var tuples))
 			{
 				Statics.IncrementCollision();
 
-				if (existingValues.Count < BucketSize)
+				foreach (var kvp in value)
 				{
-					_bucketStorage[key] = [.. existingValues, .. value];
-				}
-				else
-				{
-					_overflowBucketDictionary ??= new BucketDictionary();
-					_overflowBucketDictionary.BucketSize = BucketSize;
-					_overflowBucketDictionary[key] = value;
+					if (!tuples.ContainsKey(kvp.Key))
+					{
+						if (tuples.Count < Size)
+						{
+							tuples[kvp.Key] = kvp.Value;
+						}
+						else
+						{
+							_overflowBucketDictionary ??= new BucketDictionary();
+							_overflowBucketDictionary.Size = Size;
+							_overflowBucketDictionary[key] = value;
 
-					Statics.IncrementOverflow();
+							Statics.IncrementOverflow();
+						}
+					}
 				}
 			}
 			else
 			{
 				_bucketStorage.Add(key, value);
-
 				Statics.IncrementNonCollision();
 			}
 		}
 	}
 
-	public IEnumerable<int> GetBucketPages(string target)
+	public Dictionary<string, int> GetBucketPages(string target)
 	{
 		string key = Hash.Compute(target, _bucketStorage.Count);
 		var pages = _bucketStorage[key];
@@ -57,12 +62,12 @@ public class BucketDictionary
 			foreach (var word in page.Words)
 			{
 				var key = Hash.Compute(word, numOfBuckets);
-				this[key] = [page.Index];
+				this[key] = new Dictionary<string, int> { { word, page.Index } };
 			}
 		}
 	}
 
-	public HashSet<int> GetPagesIndexesByKey(string target)
+	public Dictionary<string, int> GetPagesIndexesByKey(string target)
 	{
 		string key = Hash.Compute(target, _bucketStorage.Count);
 
@@ -79,25 +84,18 @@ public class BucketDictionary
 		return [];
 	}
 
-	public int Scan(IList<PageModel> pages, string target, out int cost)
+	public int Scan(string target, int numOfBuckets, out int cost)
 	{
 		cost = 0;
-		var pagesIndexes = GetPagesIndexesByKey(target);
 
-		if (pagesIndexes.Count != 0)
+		string key = Hash.Compute(target, numOfBuckets);
+
+		if (_bucketStorage.TryGetValue(key, out var tuples))
 		{
-			foreach (var index in pagesIndexes)
+			if (tuples.TryGetValue(target, out int value))
 			{
-				cost++;
-				var page = pages[index];
-
-				foreach (var word in page.Words)
-				{
-					if (word.Equals(target, StringComparison.Ordinal))
-					{
-						return page.Index;
-					}
-				}
+				cost = 1;
+				return value;
 			}
 		}
 
@@ -106,6 +104,6 @@ public class BucketDictionary
 
 	public int CalculateBuckets(int NR)
 	{
-		return NR / BucketSize + 1;
+		return NR / Size + 1;
 	}
 }

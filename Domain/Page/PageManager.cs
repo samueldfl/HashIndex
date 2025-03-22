@@ -13,11 +13,21 @@ public class PageManager
 		for (int i = 0; i < words.Length; i += pageSize)
 		{
 			int currentPageSize = Math.Min(pageSize, words.Length - i);
-			string[] pageWords = new string[currentPageSize];
-			Array.Copy(words, i, pageWords, 0, currentPageSize);
 
-			pages.Add(new PageModel(pageNumber, pageWords, currentPageSize));
+			pages.Add(new PageModel(pageNumber, currentPageSize));
 			pageNumber++;
+		}
+
+		for (int i = 0; i < pages.Count; i++)
+		{
+			var page = pages[i];
+			int index = i * pageSize;
+			int length = Math.Min(pageSize, words.Length - index);
+
+			string[] pageWords = new string[length];
+			Array.Copy(words, index, pageWords, 0, length);
+
+			page.Words = pageWords;
 		}
 	}
 

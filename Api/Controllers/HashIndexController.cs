@@ -20,7 +20,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 	{
 		try
 		{
-			if (_bucketDictionary.BucketSize > 0)
+			if (_bucketDictionary.Size > 0)
 			{
 				var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
 				var wordsCount = lines.SelectMany(line => line.Split('\n')).Count();
@@ -40,9 +40,11 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 	{
 		try
 		{
-			var pages = _pageManager.GetPages();
-
-			var bucketPageIndex = _bucketDictionary.Scan(pages, target, out int bucketCost);
+			var bucketPageIndex = _bucketDictionary.Scan(
+				target,
+				_bucketDictionary.CalculateBuckets(_pageManager.Count),
+				out int bucketCost
+			);
 
 			var tableScanPageIndex = _pageManager.TableScan(target, out int tableScanCost);
 
@@ -67,7 +69,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 		{
 			var pages = _pageManager.GetPages();
 
-			if (pages.Count != 0 && _bucketDictionary.BucketSize > 0)
+			if (pages.Count != 0 && _bucketDictionary.Size > 0)
 			{
 				_bucketDictionary.CreateBuckets(
 					pages,
@@ -86,7 +88,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 	}
 
 	[HttpPost(Routes.BUCKETS_TUPLES)]
-	public IActionResult SetTuplesCapacity([FromBody] SetBucketsSizeRequest request)
+	public IActionResult SetTuplesCapacity([FromBody] SetSizeRequest request)
 	{
 		try
 		{
@@ -95,9 +97,9 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 				return BadRequest();
 			}
 
-			_bucketDictionary.BucketSize = request.Size;
+			_bucketDictionary.Size = request.Size;
 
-			return Created();
+			return NoContent();
 		}
 		catch (Exception e)
 		{
@@ -130,13 +132,13 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 	}
 
 	[HttpPost(Routes.PAGES)]
-	public async Task<IActionResult> CreatePages([FromBody] CreatePagesRequest request)
+	public async Task<IActionResult> CreatePages([FromBody] SetSizeRequest request)
 	{
 		try
 		{
 			var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
 			var words = lines.SelectMany(line => line.Split('\n')).ToArray();
-			_pageManager.CreatePages(words, request.PageSize);
+			_pageManager.CreatePages(words, request.Size);
 
 			return Created();
 		}
