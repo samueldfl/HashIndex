@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Api.Request;
 using Domain.Bucket;
 using Domain.Page;
+using Domain.Utils;
 using Microsoft.AspNetCore.Mvc;
 using SystemIOFile = System.IO.File;
 
@@ -57,7 +58,10 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
                 {
                     BucketScan = new
                     {
-                        pageIndex = bucketPageIndex, cost = bucketCost, time = searchBucketTimer.ElapsedMilliseconds
+                        pageIndex = bucketPageIndex,
+                        cost = bucketCost,
+                        time = searchBucketTimer.ElapsedMilliseconds,
+                        overflow = Statics.Overflow
                     },
                     PageScan = new
                     {
@@ -80,8 +84,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
             if (request.Size <= 0) return BadRequest();
 
             var pages = _pageManager.GetPages();
-
-            if (pages.Count == 0 || _bucketDictionary.Size <= 0) return Unauthorized();
+            if (pages.Count <= 0) return BadRequest();
 
             _bucketDictionary.Size = request.Size;
             _bucketDictionary.CreateBuckets(
