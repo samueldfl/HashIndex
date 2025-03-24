@@ -55,11 +55,11 @@ public class BucketDictionary
 			}
 		}
 	}
-	
+
 	public int TableScan(string key, string target, out int cost)
 	{
 		cost = 0;
-		
+
 		if (!_bucketStorage.TryGetValue(key, out var tuples))
 			return -1;
 
@@ -75,6 +75,8 @@ public class BucketDictionary
 	{
 		return nr / Size + 1;
 	}
-	
+
+	public bool Any() => _bucketStorage.Count > 0;
+
 	public void Clear() => _bucketStorage.Clear();
 }

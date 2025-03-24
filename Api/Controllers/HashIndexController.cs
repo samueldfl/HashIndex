@@ -69,6 +69,9 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			if (request.Size <= 0)
 				return BadRequest("Invalid value for 'size'. It must be greater than zero.");
 
+			if (_bucketDictionary.Any())
+				_bucketDictionary.Clear();
+
 			var pages = _pageManager.GetPages();
 			if (pages.Count <= 0)
 				return BadRequest("No pages available to create buckets.");
@@ -162,6 +165,13 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 	{
 		try
 		{
+			if (request.Size <= 0)
+				return BadRequest("Invalid value for 'size'. It must be greater than zero.");
+
+			var pages = _pageManager.GetPages();
+			if (pages.Count >= 0)
+				_pageManager.Clear();
+
 			var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
 			var words = lines.SelectMany(line => line.Split('\n')).ToArray();
 			_pageManager.CreatePages(words, request.Size);
