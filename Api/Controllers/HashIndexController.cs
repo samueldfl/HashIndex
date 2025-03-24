@@ -166,7 +166,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			var words = lines.SelectMany(line => line.Split('\n')).ToArray();
 			_pageManager.CreatePages(words, request.Size);
 
-			return Created();
+			return Ok();
 		}
 		catch (Exception e)
 		{

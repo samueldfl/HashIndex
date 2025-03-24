@@ -2,7 +2,7 @@ namespace Api.Controllers;
 
 public static class Routes
 {
-	public const string WORDS_PATH = @"/root/HashIndex/Api/words.txt";
+	public const string WORDS_PATH = @"C:\Users\samue\OneDrive\Documentos\HashIndex\Api\words.txt";
 
 	public const string PAGES = @"/pages";
 
