@@ -82,8 +82,14 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			var overflowTotal = Statics.Overflow + Statics.NonOverflow;
 			var collisionTotal = Statics.Collision + Statics.NonCollision;
 
-			var overflowRate = Math.Round((Statics.Overflow / (double)overflowTotal) * 100, 2);
-			var collisionRate = Math.Round((Statics.Collision / (double)collisionTotal) * 100, 2);
+			var overflowRate =
+				overflowTotal <= 0
+					? 0
+					: Math.Round((Statics.Overflow / (double)overflowTotal) * 100, 2);
+			var collisionRate =
+				collisionTotal <= 0
+					? 0
+					: Math.Round((Statics.Collision / (double)collisionTotal) * 100, 2);
 
 			return Ok(new { overflow = overflowRate, collision = collisionRate });
 		}
@@ -132,7 +138,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			return StatusCode(500, e.Message);
 		}
 	}
-	
+
 	[HttpGet(Routes.PAGES_FIRST_AND_LAST)]
 	public IActionResult GetFirstAndLastPage()
 	{
@@ -150,7 +156,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			return StatusCode(500, e.Message);
 		}
 	}
-	
+
 	[HttpPost(Routes.PAGES)]
 	public async Task<IActionResult> CreatePages([FromBody] SetSizeRequest request)
 	{
@@ -167,7 +173,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			return StatusCode(500, e.Message);
 		}
 	}
-	
+
 	[HttpDelete(Routes.CLEAR)]
 	public IActionResult Clear()
 	{
