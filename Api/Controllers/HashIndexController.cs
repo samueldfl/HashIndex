@@ -26,12 +26,12 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 
 			var searchBucketTimer = new Stopwatch();
 			searchBucketTimer.Start();
-			var bucketPageIndex = _bucketDictionary.Scan(key, target, out var bucketCost);
+			var bucketPageIndex = _bucketDictionary.TableScan(key, target, out var bucketCost);
 			searchBucketTimer.Stop();
 
 			var searchPageTimer = new Stopwatch();
 			searchPageTimer.Start();
-			var tableScanPageIndex = _pageManager.TableScan(target, out var tableScanCost);
+			var tableScanPageIndex = _pageManager.Scan(target, out var tableScanCost);
 			searchPageTimer.Stop();
 
 			if (bucketPageIndex == -1 || tableScanPageIndex == -1)

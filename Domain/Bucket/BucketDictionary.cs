@@ -55,22 +55,8 @@ public class BucketDictionary
 			}
 		}
 	}
-
-	public Dictionary<string, int> GetPagesIndexesByKey(string target)
-	{
-		var key = Hash.Compute(target, _bucketStorage.Count);
-
-		if (_bucketStorage.TryGetValue(key, out var values))
-		{
-			return values;
-		}
-
-		return _overflowBucketDictionary is not null
-			? _overflowBucketDictionary.GetPagesIndexesByKey(target)
-			: [];
-	}
-
-	public int Scan(string key, string target, out int cost)
+	
+	public int TableScan(string key, string target, out int cost)
 	{
 		cost = 0;
 		

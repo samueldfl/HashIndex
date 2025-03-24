@@ -41,7 +41,7 @@ public class PageManager
 		return _pages[index];
 	}
 
-	public int TableScan(string target, out int cost)
+	public int Scan(string target, out int cost)
 	{
 		cost = 0;
 		foreach (var page in _pages)
