@@ -132,7 +132,25 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			return StatusCode(500, e.Message);
 		}
 	}
+	
+	[HttpGet(Routes.PAGES_FIRST_AND_LAST)]
+	public IActionResult GetFirstAndLastPage()
+	{
+		try
+		{
+			var pages = _pageManager.GetPages();
 
+			if (pages.Count <= 0)
+				return BadRequest("No pages available.");
+
+			return Ok(new { firstPage = pages[0], lastPage = pages[^1] });
+		}
+		catch (Exception e)
+		{
+			return StatusCode(500, e.Message);
+		}
+	}
+	
 	[HttpPost(Routes.PAGES)]
 	public async Task<IActionResult> CreatePages([FromBody] SetSizeRequest request)
 	{
@@ -149,7 +167,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
 			return StatusCode(500, e.Message);
 		}
 	}
-
+	
 	[HttpDelete(Routes.CLEAR)]
 	public IActionResult Clear()
 	{
