@@ -26,12 +26,12 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("DefaultCorsPolicy");
-
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors("DefaultCorsPolicy");
 
 app.Run();

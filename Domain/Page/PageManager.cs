@@ -2,29 +2,29 @@ namespace Domain.Page;
 
 public class PageManager
 {
-	private readonly IList<PageModel> pages = [];
+	private readonly IList<PageModel> _pages = [];
 
-	public int Count => pages.Sum(page => page.Words.Length);
+	public int Count => _pages.Sum(page => page.Words.Length);
 
 	public void CreatePages(string[] words, int pageSize)
 	{
-		int pageNumber = 0;
+		var pageNumber = 0;
 
-		for (int i = 0; i < words.Length; i += pageSize)
+		for (var i = 0; i < words.Length; i += pageSize)
 		{
-			int currentPageSize = Math.Min(pageSize, words.Length - i);
+			var currentPageSize = Math.Min(pageSize, words.Length - i);
 
-			pages.Add(new PageModel(pageNumber, currentPageSize));
+			_pages.Add(new PageModel(pageNumber, currentPageSize));
 			pageNumber++;
 		}
 
-		for (int i = 0; i < pages.Count; i++)
+		for (var i = 0; i < _pages.Count; i++)
 		{
-			var page = pages[i];
-			int index = i * pageSize;
-			int length = Math.Min(pageSize, words.Length - index);
+			var page = _pages[i];
+			var index = i * pageSize;
+			var length = Math.Min(pageSize, words.Length - index);
 
-			string[] pageWords = new string[length];
+			var pageWords = new string[length];
 			Array.Copy(words, index, pageWords, 0, length);
 
 			page.Words = pageWords;
@@ -33,29 +33,28 @@ public class PageManager
 
 	public IList<PageModel> GetPages()
 	{
-		return pages;
+		return _pages;
 	}
 
 	public PageModel GetPageByIndex(int index)
 	{
-		return pages[index];
+		return _pages[index];
 	}
 
 	public int TableScan(string target, out int cost)
 	{
 		cost = 0;
-		foreach (var page in pages)
+		foreach (var page in _pages)
 		{
 			cost++;
-			foreach (var word in page.Words)
+			if (page.Words.Any(word => word.Equals(target, StringComparison.Ordinal)))
 			{
-				if (word.Equals(target, StringComparison.Ordinal))
-				{
-					return page.Index;
-				}
+				return page.Index;
 			}
 		}
 
 		return -1;
 	}
+
+	public void Clear() => _pages.Clear();
 }

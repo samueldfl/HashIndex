@@ -8,6 +8,8 @@ public static class Statics
 
 	public static int Overflow { get; private set; } = 0;
 
+	public static int NonOverflow { get; private set; } = 0;
+
 	public static void IncrementCollision()
 	{
 		Collision++;
@@ -21,6 +23,11 @@ public static class Statics
 	public static void IncrementOverflow()
 	{
 		Overflow++;
+	}
+
+	public static void IncrementNonOverflow()
+	{
+		NonOverflow++;
 	}
 
 	public static void ResetAllStats()
