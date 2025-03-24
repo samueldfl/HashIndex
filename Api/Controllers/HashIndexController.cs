@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Api.Request;
 using Domain.Bucket;
 using Domain.Page;
@@ -37,19 +38,31 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
     {
         try
         {
+            var searchBucketTimer = new Stopwatch();
+            searchBucketTimer.Start();
             var bucketPageIndex = _bucketDictionary.Scan(
                 target,
                 _bucketDictionary.CalculateBuckets(_pageManager.Count),
                 out var bucketCost
             );
+            searchBucketTimer.Stop();
 
+            var searchPageTimer = new Stopwatch();
+            searchPageTimer.Start();
             var tableScanPageIndex = _pageManager.TableScan(target, out var tableScanCost);
+            searchBucketTimer.Stop();
 
             return Ok(
                 new
                 {
-                    BucketScan = new { pageIndex = bucketPageIndex, cost = bucketCost },
-                    PageScan = new { pageIndex = tableScanPageIndex, cost = tableScanCost },
+                    BucketScan = new
+                    {
+                        pageIndex = bucketPageIndex, cost = bucketCost, time = searchBucketTimer.ElapsedMilliseconds
+                    },
+                    PageScan = new
+                    {
+                        pageIndex = tableScanPageIndex, cost = tableScanCost, time = searchPageTimer.ElapsedMilliseconds
+                    },
                 }
             );
         }
@@ -83,7 +96,7 @@ public class HashIndexController(PageManager pageManager, BucketDictionary bucke
             return BadRequest(e.Message);
         }
     }
-    
+
     [HttpGet(Routes.PAGES)]
     public IActionResult GetPages([FromQuery] int? skip, [FromQuery] int take)
     {
