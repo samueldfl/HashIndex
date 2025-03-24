@@ -7,9 +7,7 @@ public static class Routes
 	public const string PAGES = @"/pages";
 
 	public const string PAGE = @"/pages/{index}";
-
-	public const string PAGES_TABLE_SCAN = @"/pages/{target}/table-scan";
-
+	
 	public const string BUCKETS = @"/buckets";
 
 	public const string BUCKETS_TUPLES = @"/buckets/tuples";

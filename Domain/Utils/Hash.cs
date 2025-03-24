@@ -4,11 +4,7 @@ public static class Hash
 {
 	public static string Compute(string key, int numBuckets)
 	{
-		int hash = 0;
-		foreach (char c in key)
-		{
-			hash = (hash * 31 + c) % numBuckets;
-		}
+		var hash = key.Aggregate(0, (current, c) => (current * 31 + c) % numBuckets);
 		return Math.Abs(hash).ToString();
 	}
 }

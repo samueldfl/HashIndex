@@ -9,142 +9,119 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class HashIndexController(PageManager pageManager, BucketDictionary bucketDictionary)
-	: ControllerBase
+    : ControllerBase
 {
-	private readonly PageManager _pageManager = pageManager;
+    private readonly PageManager _pageManager = pageManager;
 
-	private readonly BucketDictionary _bucketDictionary = bucketDictionary;
+    private readonly BucketDictionary _bucketDictionary = bucketDictionary;
 
-	[HttpGet(Routes.BUCKETS_CALCULATE)]
-	public async Task<IActionResult> GetBucketsCalculation()
-	{
-		try
-		{
-			if (_bucketDictionary.Size > 0)
-			{
-				var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
-				var wordsCount = lines.SelectMany(line => line.Split('\n')).Count();
-				int numOfBuckets = _bucketDictionary.CalculateBuckets(wordsCount);
-				return Ok(numOfBuckets);
-			}
-			return Unauthorized();
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
+    [HttpGet(Routes.BUCKETS_CALCULATE)]
+    public async Task<IActionResult> GetBucketsCalculation()
+    {
+        try
+        {
+            if (_bucketDictionary.Size <= 0) return Unauthorized();
+            var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
+            var wordsCount = lines.SelectMany(line => line.Split('\n')).Count();
+            var numOfBuckets = _bucketDictionary.CalculateBuckets(wordsCount);
+            return Ok(numOfBuckets);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-	[HttpGet(Routes.SEARCH_TARGET_WORD_PAGE)]
-	public IActionResult SearchTargetWord([FromRoute] string target)
-	{
-		try
-		{
-			var bucketPageIndex = _bucketDictionary.Scan(
-				target,
-				_bucketDictionary.CalculateBuckets(_pageManager.Count),
-				out int bucketCost
-			);
+    [HttpGet(Routes.SEARCH_TARGET_WORD_PAGE)]
+    public IActionResult SearchTargetWord([FromRoute] string target)
+    {
+        try
+        {
+            var bucketPageIndex = _bucketDictionary.Scan(
+                target,
+                _bucketDictionary.CalculateBuckets(_pageManager.Count),
+                out var bucketCost
+            );
 
-			var tableScanPageIndex = _pageManager.TableScan(target, out int tableScanCost);
+            var tableScanPageIndex = _pageManager.TableScan(target, out var tableScanCost);
 
-			return Ok(
-				new
-				{
-					BucketScan = new { pageIndex = bucketPageIndex, cost = bucketCost },
-					PageScan = new { pageIndex = tableScanPageIndex, cost = tableScanCost },
-				}
-			);
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
+            return Ok(
+                new
+                {
+                    BucketScan = new { pageIndex = bucketPageIndex, cost = bucketCost },
+                    PageScan = new { pageIndex = tableScanPageIndex, cost = tableScanCost },
+                }
+            );
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-	[HttpPost(Routes.BUCKETS)]
-	public IActionResult CreateBuckets()
-	{
-		try
-		{
-			var pages = _pageManager.GetPages();
+    [HttpPost(Routes.BUCKETS)]
+    public IActionResult CreateBuckets([FromBody] SetSizeRequest request)
+    {
+        try
+        {
+            if (request.Size <= 0) return BadRequest();
 
-			if (pages.Count != 0 && _bucketDictionary.Size > 0)
-			{
-				_bucketDictionary.CreateBuckets(
-					pages,
-					_bucketDictionary.CalculateBuckets(_pageManager.Count)
-				);
+            var pages = _pageManager.GetPages();
 
-				return Created();
-			}
+            if (pages.Count == 0 || _bucketDictionary.Size <= 0) return Unauthorized();
 
-			return Unauthorized();
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
+            _bucketDictionary.Size = request.Size;
+            _bucketDictionary.CreateBuckets(
+                pages,
+                _bucketDictionary.CalculateBuckets(_pageManager.Count)
+            );
 
-	[HttpPost(Routes.BUCKETS_TUPLES)]
-	public IActionResult SetTuplesCapacity([FromBody] SetSizeRequest request)
-	{
-		try
-		{
-			if (request.Size <= 0)
-			{
-				return BadRequest();
-			}
+            return Created();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    
+    [HttpGet(Routes.PAGES)]
+    public IActionResult GetPages([FromQuery] int? skip, [FromQuery] int take)
+    {
+        var pages = _pageManager.GetPages().Skip(skip ?? 0).Take(take);
+        return Ok(pages);
+    }
 
-			_bucketDictionary.Size = request.Size;
+    [HttpGet(Routes.PAGE)]
+    public IActionResult GetPage([FromRoute] int index)
+    {
+        try
+        {
+            return Ok(_pageManager.GetPageByIndex(index));
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return NotFound();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-			return NoContent();
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
+    [HttpPost(Routes.PAGES)]
+    public async Task<IActionResult> CreatePages([FromBody] SetSizeRequest request)
+    {
+        try
+        {
+            var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
+            var words = lines.SelectMany(line => line.Split('\n')).ToArray();
+            _pageManager.CreatePages(words, request.Size);
 
-	[HttpGet(Routes.PAGES)]
-	public IActionResult GetPages([FromQuery] int? skip, [FromQuery] int take)
-	{
-		var pages = _pageManager.GetPages().Skip(skip ?? default).Take(take);
-		return Ok(pages);
-	}
-
-	[HttpGet(Routes.PAGE)]
-	public IActionResult GetPage([FromRoute] int index)
-	{
-		try
-		{
-			return Ok(_pageManager.GetPageByIndex(index));
-		}
-		catch (ArgumentOutOfRangeException)
-		{
-			return NotFound();
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
-
-	[HttpPost(Routes.PAGES)]
-	public async Task<IActionResult> CreatePages([FromBody] SetSizeRequest request)
-	{
-		try
-		{
-			var lines = await SystemIOFile.ReadAllLinesAsync(Routes.WORDS_PATH);
-			var words = lines.SelectMany(line => line.Split('\n')).ToArray();
-			_pageManager.CreatePages(words, request.Size);
-
-			return Created();
-		}
-		catch (Exception e)
-		{
-			return BadRequest(e.Message);
-		}
-	}
+            return Created();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }
